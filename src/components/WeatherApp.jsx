@@ -78,7 +78,6 @@ function WeatherApp() {
       setUserInput("");
     } catch (error) {
       setError(error.message);
-      alert(error.message);
       console.error("Error fetching weather data:", error);
     } finally {
       setIsLoading(false);
@@ -90,17 +89,26 @@ function WeatherApp() {
       handleSearch();
     }
   }
+  
+  // Add this function to clear error when user types
+  function handleInputChange(e) {
+    setUserInput(e.target.value);
+    if (error) {
+      setError(null);
+    }
+  }
 
   return (
     <div className="weather-app">
       <div className="weather-app__input-box">
         <input
           type="text"
-          placeholder="Search"
+          placeholder={error || "Search"}
           value={userInput}
-          onChange={(e) => setUserInput(e.target.value)}
+          onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           disabled={isLoading}
+          className={error ? "error" : ""}
         />
         <img 
           src={icon_search} 
@@ -109,10 +117,9 @@ function WeatherApp() {
           style={{ cursor: isLoading ? 'wait' : 'pointer' }}
         />
       </div>
-      {error && <div className="error-message">{error}</div>}
       <div className="weather-icon">
         <img src={icon} alt="Weather icon"/>
-      </div>
+      </div> 
       <div className="temperature">{temperature}°C</div>
       <div className="condition">
         {capitalizeFirstLetter(condition)}
