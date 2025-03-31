@@ -1,50 +1,33 @@
-import { useState } from "react";
-import { useEffect } from "react";
-
+import { useState, useEffect } from "react";
 import "../styles/WeatherApp.css";
-
 import config from "../config.json"
-
-import icon_01d from "../assets/01d.png";
-import icon_01n from "../assets/01n.png";
-import icon_02d from "../assets/02d.png";
-import icon_02n from "../assets/02n.png";
-import icon_03d from "../assets/03d.png";
-import icon_03n from "../assets/03n.png";
-import icon_04d from "../assets/04d.png";
-import icon_04n from "../assets/04n.png";
-import icon_09d from "../assets/09d.png";
-import icon_09n from "../assets/09n.png";
-import icon_10d from "../assets/10d.png";
-import icon_10n from "../assets/10n.png";
-import icon_11d from "../assets/11d.png";
-import icon_11n from "../assets/11n.png";
-import icon_13d from "../assets/13d.png";
-import icon_13n from "../assets/13n.png";
-import icon_50d from "../assets/50d.png";
-import icon_50n from "../assets/50n.png";
 import icon_search from "../assets/search.png";
 import icon_arrow from "../assets/arrow.png"
 
-const icons = {
-  "01d": icon_01d,
-  "01n": icon_01n,
-  "02d": icon_02d,
-  "02n": icon_02n,
-  "03d": icon_03d,
-  "03n": icon_03n,
-  "04d": icon_04d,
-  "04n": icon_04n,
-  "09d": icon_09d,
-  "09n": icon_09n,
-  "10d": icon_10d,
-  "10n": icon_10n,
-  "11d": icon_11d,
-  "11n": icon_11n,
-  "13d": icon_13d,
-  "13n": icon_13n,
-  "50d": icon_50d,
-  "50n": icon_50n,
+// Use Vite's import.meta.glob to dynamically import all weather icons
+const weatherIcons = import.meta.glob('../assets/*.png', { eager: true });
+
+// Create icons object dynamically
+const iconCodes = [
+  "01d", "01n", "02d", "02n", "03d", "03n", "04d", "04n",
+  "09d", "09n", "10d", "10n", "11d", "11n", "13d", "13n",
+  "50d", "50n"
+];
+
+const icons = {};
+iconCodes.forEach(code => {
+  const iconPath = `../assets/${code}.png`;
+  if (weatherIcons[iconPath]) {
+    icons[code] = weatherIcons[iconPath].default;
+  }
+});
+
+// API base URL as a constant
+const API_BASE_URL = "https://api.openweathermap.org/data/2.5/weather";
+
+// Utility function to capitalize first letter
+const capitalizeFirstLetter = (string) => {
+  return string.charAt(0).toUpperCase() + string.slice(1);
 };
 
 function WeatherApp() {
@@ -57,47 +40,52 @@ function WeatherApp() {
   const [icon, setIcon] = useState("");
   const [windDirection, setWindDirection] = useState(0);
   const [windSpeed, setWindSpeed] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     handleSearch();
   }, []);
 
+  // Improved with async/await pattern
   async function handleSearch() {
-    await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${userInput}
-    &appid=${apiKey}&units=metric`)
-      .then((data) => {
-        if (!data.ok) {
-          switch (data.status) {
-            case 404: {
-              alert("Not Found");
-              break;
-            }
-            case 500: {
-              alert("Server error");
-              break;
-            }
-            default: {
-              alert("Unknown error");
-              break;
-            }
-          }
-        }
-        return data.json();
-      })
-      .then((info) => {
-        console.log(info);
-        setTemperature(Math.floor(info.main.temp));
-        setCity(info.name);
-        setCondition(info.weather[0].description);
-        setIcon(icons[info.weather[0].icon]);
-        setWindDirection(info.wind.deg);
-        setWindSpeed(info.wind.speed);
-      })
-      .catch((e) => console.log(e));
-    setUserInput("");
+    if (!userInput.trim()) return;
+    
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}?q=${userInput}&appid=${apiKey}&units=metric`
+      );
+      
+      if (!response.ok) {
+        let errorMessage = "Unknown error";
+        if (response.status === 404) errorMessage = "City not found";
+        if (response.status === 500) errorMessage = "Server error";
+        
+        throw new Error(errorMessage);
+      }
+      
+      const data = await response.json();
+      
+      setTemperature(Math.floor(data.main.temp));
+      setCity(data.name);
+      setCondition(data.weather[0].description);
+      setIcon(icons[data.weather[0].icon]);
+      setWindDirection(data.wind.deg);
+      setWindSpeed(data.wind.speed);
+      setUserInput("");
+    } catch (error) {
+      setError(error.message);
+      alert(error.message);
+      console.error("Error fetching weather data:", error);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
-  function handleEnterPress(e) {
+  function handleKeyDown(e) {
     if (e.key === "Enter") {
       handleSearch();
     }
@@ -111,16 +99,23 @@ function WeatherApp() {
           placeholder="Search"
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
-          onKeyPress={handleEnterPress}
+          onKeyDown={handleKeyDown}
+          disabled={isLoading}
         />
-        <img src={icon_search} alt="" onClick={handleSearch} />
+        <img 
+          src={icon_search} 
+          alt="Search" 
+          onClick={handleSearch}
+          style={{ cursor: isLoading ? 'wait' : 'pointer' }}
+        />
       </div>
+      {error && <div className="error-message">{error}</div>}
       <div className="weather-icon">
         <img src={icon} alt="Weather icon"/>
       </div>
       <div className="temperature">{temperature}°C</div>
       <div className="condition">
-        {condition[0].toUpperCase() + condition.slice(1)}
+        {capitalizeFirstLetter(condition)}
       </div>
       <div className="wind">
         <div className="wind-direction">
