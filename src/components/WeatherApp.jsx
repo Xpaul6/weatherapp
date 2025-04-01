@@ -3,8 +3,6 @@ import { useEffect } from "react";
 
 import "../styles/WeatherApp.css";
 
-import config from "../config.json"
-
 import icon_01d from "../assets/01d.png";
 import icon_01n from "../assets/01n.png";
 import icon_02d from "../assets/02d.png";
@@ -48,7 +46,7 @@ const icons = {
 };
 
 function WeatherApp() {
-  const apiKey = config.KEY;
+  const apiKey = import.meta.env.VITE_API_KEY;
 
   const [userInput, setUserInput] = useState("London");
   const [temperature, setTemperature] = useState(0);
