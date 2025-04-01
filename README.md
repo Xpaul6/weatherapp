@@ -1,10 +1,11 @@
-# React + Vite
+# Weather widget
+Powered by Vite & React
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# Demo
+You can access demo at https://weatherapp-tau-livid.vercel.app/
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-![изображение](https://github.com/Xpaul6/weatherapp/assets/42094484/5f82433d-f314-485f-bba8-bcebcbe33275)
+# Run locally
+1. Clone this repo
+2. Run `npm install`
+3. Run `npm run dev`
+**Enjoy!**
