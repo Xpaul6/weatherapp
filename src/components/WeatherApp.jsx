@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import "../styles/WeatherApp.css";
-import config from "../config.json"
+// import config from "../config.json"
 import icon_search from "../assets/search.png";
 import icon_arrow from "../assets/arrow.png"
 
@@ -31,7 +31,7 @@ const capitalizeFirstLetter = (string) => {
 };
 
 function WeatherApp() {
-  const apiKey = config.KEY;
+  const apiKey = import.meta.env.VITE_API_KEY;
 
   const [userInput, setUserInput] = useState("London");
   const [temperature, setTemperature] = useState(0);
